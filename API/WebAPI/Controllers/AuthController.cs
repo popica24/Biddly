@@ -7,5 +7,6 @@ namespace Licenta.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
+
     }
 }
