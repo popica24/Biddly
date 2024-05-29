@@ -2,7 +2,7 @@
 
 namespace Business.Contracts;
 
-public interface IUserRepository
+public interface IUserRepository : IGenericRepository<User>
 {
-    public bool Create(User user);
+
 }

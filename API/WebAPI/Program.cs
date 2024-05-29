@@ -1,6 +1,11 @@
+using Business.Contracts;
 using Licenta.Hubs;
 using Licenta.Services;
+using Services;
 using Services.CacheService;
+using Services.Context;
+using WebAPI.Common.Mappings;
+using WebAPI.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +27,10 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR();
+builder.Services.AddTransient<IConnectionString>(x => new ConnectionString(builder.Configuration.GetConnectionString("Default")!));
+builder.Services.AddMappings();
+builder.Services.AddScoped<SqlDataContext>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddTransient<ICacheService, CacheService>();
 builder.Services.AddHostedService<BidMonitoringService>();
 var app = builder.Build();

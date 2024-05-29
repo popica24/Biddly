@@ -34,7 +34,7 @@ public class BiddingController(IHubContext<BidHub, IBidsHubClient> biddingHub, I
 
 
     [HttpGet("{bidId}")]
-    public async Task<IActionResult> GetAsync(string bidId)
+    public IActionResult GetAsync(string bidId)
     {
         var bidJson = cacheService.GetData<string>($"bid-{bidId}");
         if (string.IsNullOrEmpty(bidJson))

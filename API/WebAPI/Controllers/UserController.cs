@@ -1,10 +1,22 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Business.Contracts;
+using Business.Domain;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class UserController : ControllerBase
+public class UserController(IUnitOfWork unitOfWork) : ControllerBase
 {
+    [HttpPost]
+    public async Task<IActionResult> PostAsync()
+    {
+
+        /*    unitOfWork.BeginTransaction();
+            var userInserted = await unitOfWork.UserRepository.AddAsync(user);
+            unitOfWork.CommitAndCloseConnection();
+            return userInserted ? Ok() : BadRequest();*/
+        return Ok();
+    }
 }

@@ -1,20 +1,39 @@
 ﻿using Microsoft.Data.SqlClient;
+using Npgsql;
+using System.Data;
 
 namespace Services.Context;
 
-public class SqlDataContext : IDisposable
+public class SqlDataContext(IConnectionString connectionString) : IDisposable
 {
-    public SqlConnection Conenction { get; set; }
+    private IDbConnection? connection;
+    private IDbTransaction? transaction;
 
-    public SqlDataContext(IConnectionString connectionString)
+    public IDbConnection? Connection
     {
-        Conenction = new SqlConnection(connectionString.SqlConnectionString);
-        Conenction.Open();
+        get
+        {
+            if (connection is null || connection.State != ConnectionState.Open)
+                connection = new NpgsqlConnection(connectionString.SqlConnectionString);
+            return connection;
+        }
+    }
+
+    public IDbTransaction? Transaction
+    {
+        get
+        {
+            return transaction;
+        }
+        set
+        {
+            transaction = value;
+        }
     }
 
     public void Dispose()
     {
-        Conenction.Close();
-        Conenction.Dispose();
+        connection.Close();
+        connection.Dispose();
     }
 }
