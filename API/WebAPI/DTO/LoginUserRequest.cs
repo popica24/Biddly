@@ -1,5 +1,5 @@
 ﻿namespace WebAPI.DTO
 {
-    public record LoginUserRequest (string email, string password);
+    public record LoginUserRequest (string Email, string Password);
     
 }

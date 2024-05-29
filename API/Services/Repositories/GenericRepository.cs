@@ -4,6 +4,9 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Dapper;
 using System.Reflection;
+using System.Data;
+using Microsoft.IdentityModel.Tokens;
+using System.Linq;
 
 namespace Services.Repositories;
 
@@ -15,7 +18,7 @@ public class GenericRepository<T>(SqlDataContext context) : IGenericRepository<T
         try
         {
             string tableName = GetTableName();
-            string columns = GenericRepository<T>.GetColumns(excludeKey: false);
+            string columns = GetColumns(excludeKey: false);
             string properties = GetPropertyNames(excludeKey: false);
             string query = @$"WITH rows AS (
                                INSERT INTO {tableName}
@@ -31,6 +34,18 @@ public class GenericRepository<T>(SqlDataContext context) : IGenericRepository<T
         catch (Exception ex) { }
 
         return rowsAffected > 0;
+    }
+
+    public async Task<IEnumerable<T>> GetByColumn(string columnName, string columnValue)
+    {
+
+        string tableName = GetTableName();
+
+        string query = $"SELECT * FROM {tableName} WHERE {columnName} = '{columnValue}'";
+
+        var result = await context.Connection.QueryAsync<T>(query);
+
+        return result;
     }
 
     private static string GetTableName()

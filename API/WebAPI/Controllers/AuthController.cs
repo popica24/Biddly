@@ -12,7 +12,7 @@ namespace Licenta.Controllers
         [HttpPost]
         public async Task<IActionResult> Authenticate(RegisterUserRequest regiterRequest, string authType)
         {
-            if(authType == null)
+            if(string.IsNullOrEmpty(authType))
             {
                 return BadRequest();
             }

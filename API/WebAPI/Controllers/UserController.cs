@@ -17,6 +17,8 @@ public class UserController(IUnitOfWork unitOfWork) : ControllerBase
             var userInserted = await unitOfWork.UserRepository.AddAsync(user);
             unitOfWork.CommitAndCloseConnection();
             return userInserted ? Ok() : BadRequest();*/
+        unitOfWork.BeginTransaction();
+        var user = await unitOfWork.UserRepository.GetByColumn("email", "sdfoihbsdiu@gmail.com");
         return Ok();
     }
 }
