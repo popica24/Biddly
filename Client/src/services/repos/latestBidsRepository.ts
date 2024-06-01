@@ -1,4 +1,4 @@
-import { Bid, BidModel, BidSearchParameters } from "../../utils/types";
+import { BidModel, BidSearchParameters } from "../../utils/types";
 import { BaseRepository } from "../BaseRepository";
 
 class LatestBidsRepository extends BaseRepository<BidModel, BidSearchParameters>{

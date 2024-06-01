@@ -1,16 +1,18 @@
 ﻿using MapsterMapper;
-using Microsoft.AspNetCore.Http;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using WebAPI.DTO;
+using Services.Common.DTO.RegisterUser;
+using Services.UserModule.Commands.RegisterUser;
+using Services.UserModule.Queries.LoginUser;
 
 namespace Licenta.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController(IMapper mapper) : ControllerBase
+    public class AuthController(IMapper mapper, ISender sender) : ControllerBase
     {
         [HttpPost]
-        public async Task<IActionResult> Authenticate(RegisterUserRequest regiterRequest, string authType)
+        public async Task<IActionResult> Authenticate(RegisterUserRequest userRequest, string authType)
         {
             if(string.IsNullOrEmpty(authType))
             {
@@ -18,27 +20,37 @@ namespace Licenta.Controllers
             }
             if(authType == "credential")
             {
-                var loginRequest = mapper.Map<LoginUserRequest>(regiterRequest);
+                var loginRequest = mapper.Map<LoginUserRequest>(userRequest);
 
-                await Login(loginRequest);
+               var token = await Login(loginRequest);
+
+                return Ok(token);
             }
          
             if(authType == "register")
             {
-                await Register(regiterRequest);
+                var registerResult = await Register(userRequest);
+
+                return registerResult ? Ok() : BadRequest();
             }
 
             return BadRequest();
         }
 
-        private async Task<IActionResult> Login(LoginUserRequest regiterRequest)
+        private async Task<string> Login(LoginUserRequest loginRequest)
         {
-            return Ok();
+            var loginUserCommand = mapper.Map<LoginUserQuery>(loginRequest);
+
+            var token = await sender.Send(loginUserCommand);
+
+            return token;
         }
 
-        private async Task<IActionResult> Register(RegisterUserRequest regiterRequest)
+        private async Task<bool> Register(RegisterUserRequest regiterRequest)
         {
-            return Ok();
+            var registerUserCommand = mapper.Map<RegisterUserCommand>(regiterRequest);
+
+            return await sender.Send(registerUserCommand);
         }
     }
 }

@@ -12,6 +12,10 @@ public class UnitOfWork : IUnitOfWork
 
     public IUserRepository UserRepository { get; private set; }
 
+    public IItemRepository ItemRepository { get; private set; }
+
+    public IBidRepository BidRepository { get; private set; }
+
     public UnitOfWork(SqlDataContext context)
     {
         _context = context;
@@ -21,6 +25,8 @@ public class UnitOfWork : IUnitOfWork
     private void Init()
     {
         UserRepository = new UserRepository(_context);
+        ItemRepository = new ItemsRepository(_context);
+        BidRepository = new BidRepository();
     }
 
     public void BeginTransaction()

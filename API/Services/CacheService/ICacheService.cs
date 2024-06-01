@@ -7,4 +7,6 @@ public interface ICacheService
     bool SetData<T>(string key, T value, DateTimeOffset expirationTime);
 
     object RemoveData(string key);
+
+    bool Push(string key, string value);
 }

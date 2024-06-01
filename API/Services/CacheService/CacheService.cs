@@ -8,8 +8,8 @@ public class CacheService : ICacheService
     private readonly IDatabase _cacheDb;
     public CacheService()
     {
-       /* string connectionString = Environment.GetEnvironmentVariable("REDIS_CONNECTION")!;*/
-        var redis = ConnectionMultiplexer.Connect("localhost:6379");
+        string connectionString = Environment.GetEnvironmentVariable("REDIS_CONNECTION")!;
+        var redis = ConnectionMultiplexer.Connect(connectionString);
         _cacheDb = redis.GetDatabase();
     }
 
@@ -34,5 +34,11 @@ public class CacheService : ICacheService
         var expiryTime = expirationTime.DateTime.Subtract(DateTime.Now);
 
         return _cacheDb.StringSet(key, JsonConvert.SerializeObject(value), expiryTime);
+    }
+
+    public bool Push(string key, string value)
+    {
+        var res =_cacheDb.ListRightPush(key, value);
+        return res != 0;
     }
 }

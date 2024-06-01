@@ -1,48 +1,49 @@
 ﻿using Licenta.Hubs;
 using Licenta.Models.Bid;
-using Licenta.Models.Bidl;
+using MapsterMapper;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
+using Services.BidsModule.Commands.CreateBid;
+using Services.BidsModule.Queries.GetBid;
 using Services.CacheService;
+using Services.Common.DTO.Bid;
+using Services.Utils;
 
 namespace Licenta.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class BiddingController(IHubContext<BidHub, IBidsHubClient> biddingHub, ICacheService cacheService) : ControllerBase
+public class BiddingController(IHubContext<BidHub, IBidsHubClient> biddingHub,ISender sender, IMapper mapper) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> CreateAsync(CreateBid model)
+    public async Task<IActionResult> CreateAsync(CreateBidRequest model)
     {
-        var latestBidsJson = cacheService.GetData<string>("latest-bids");
-        List<string> latestBidsId = string.IsNullOrEmpty(latestBidsJson)
-            ? []
-            : JsonConvert.DeserializeObject<List<string>>(latestBidsJson);
+        var bidModel = mapper.Map<RunningBid>(model);
 
-        var bidModel = new BidModel(model);
-        latestBidsId.Add(bidModel.BidId);
+        var createBidCommand = mapper.Map<CreateBidCommand>(bidModel);
 
-        var updatedBidsJson = JsonConvert.SerializeObject(latestBidsId);
-        var createdBidJson = JsonConvert.SerializeObject(bidModel);
-        cacheService.SetData("latest-bids", updatedBidsJson, DateTime.UtcNow.AddDays(7));
-        cacheService.SetData($"bid-{bidModel.BidId}", createdBidJson, DateTime.UtcNow.AddDays(7));
-        await biddingHub.Clients.All.UpdateLatestBids();
-        return Ok();
+       var bidCreated = await sender.Send(createBidCommand);
+
+        if (bidCreated)
+        {
+            await biddingHub.Clients.All.UpdateLatestBids();
+
+            return Ok();
+        }
+        return BadRequest();
     }
 
 
 
     [HttpGet("{bidId}")]
-    public IActionResult GetAsync(string bidId)
+    public async Task<IActionResult> GetAsync(string bidId)
     {
-        var bidJson = cacheService.GetData<string>($"bid-{bidId}");
-        if (string.IsNullOrEmpty(bidJson))
-        {
-            return NotFound();
-        }
+        var getBidQuery = new GetBidQuery(bidId);
 
-        var bid = JsonConvert.DeserializeObject<BidModel>(bidJson);
+        var bid = await sender.Send(getBidQuery);
+
         return Ok(bid);
     }
 }

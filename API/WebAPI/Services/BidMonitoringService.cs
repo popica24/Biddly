@@ -1,19 +1,21 @@
 ﻿
 using Licenta.Hubs;
-using Licenta.Models.Bidl;
+using MediatR;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
 using Services.CacheService;
+using Services.Common.DTO.Bid;
+using Services.Utils;
 
 namespace Licenta.Services;
 
-public class BidMonitoringService(IHubContext<BidHub, IBidsHubClient> biddingHub, ICacheService cacheService) : BackgroundService
+public class BidMonitoringService(IHubContext<BidHub, IBidsHubClient> biddingHub, ICacheService cacheService, ISender sender) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        while(!stoppingToken.IsCancellationRequested)
+       /* while(!stoppingToken.IsCancellationRequested)
         {
-            string _bidsIdJson = cacheService.GetData<string>("latest-bids");
+            string _bidsIdJson = cacheService.GetData<string>(GlobalConstants.RedisKeys.RunningBids);
 
             var _bidsId = new List<string>();
 
@@ -26,20 +28,23 @@ public class BidMonitoringService(IHubContext<BidHub, IBidsHubClient> biddingHub
 
             foreach(var bidId in _bidsId.ToList())
             {
-                var bidModelJson = cacheService.GetData<string>($"bid-{bidId}");
-                var bidModel = JsonConvert.DeserializeObject<BidModel>(bidModelJson);
-                if (bidModel.EndsAt <= now) {
+                var bidModelJson = cacheService.GetData<string>(GlobalConstants.RedisKeys.BidId(bidId));
 
-                    await biddingHub.Clients.All.BidEnded($"bid-{bidId}");
+                var bidModel = JsonConvert.DeserializeObject<RunningBid>(bidModelJson);
+
+                if (bidModel.EndingAt <= now) {
+                    await biddingHub.Clients.All.BidEnded(GlobalConstants.RedisKeys.BidId(bidId));
                     await biddingHub.Clients.All.UpdateLatestBids();
-                    cacheService.RemoveData($"bid-{bidId}");
+
+                    cacheService.RemoveData(GlobalConstants.RedisKeys.BidId(bidId));
+
                     _bidsId.Remove(bidId);
                     var newBidsJson = JsonConvert.SerializeObject(_bidsId);
-                    cacheService.SetData("latest-bids", newBidsJson, DateTime.Now.AddDays(7));
+                    cacheService.SetData(GlobalConstants.RedisKeys.RunningBids, newBidsJson, DateTime.Now.AddDays(7));
                 }
             }
 
             await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
-        }
+        }*/
     }
 }
