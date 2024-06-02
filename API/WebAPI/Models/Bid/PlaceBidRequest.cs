@@ -1,4 +1,4 @@
 ﻿namespace Licenta.Models.Bid;
 
-public record PlaceBidRequest(string BidId, string bidderId, int Ammount);
+public record PlaceBidRequest(string BidId, string BidderId, int Ammount);
 

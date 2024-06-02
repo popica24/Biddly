@@ -15,4 +15,6 @@ public interface IBidRepository
     bool BidToItem(string bidId, string userId, long ammount);
 
     Bid? GetBid(string bidId);
+
+    bool Persist(Bid bid);
 }

@@ -1,25 +1,27 @@
 ﻿using Licenta.Hubs;
 using Licenta.Models.Bid;
+using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
-using Services.CacheService;
-using Services.Common.DTO.Bid;
-using Services.Utils;
+using Services.BidsModule.Commands.PlaceBid;
 
 namespace Licenta.Controllers
 {
-    [Route("api/[controller]")]
-    [Authorize] 
+    [Route("api/[controller]")] 
     [ApiController]
-    public class BidController(IHubContext<BidHub, IBidsHubClient> biddingHub, ISender sender) : ControllerBase
+    public class BidController(IHubContext<BidHub, IBidsHubClient> biddingHub, ISender sender, IMapper mapper) : ControllerBase
     {
         [HttpPost]
-        public async Task<IActionResult> Index (PlaceBidRequest model)
+        public IActionResult Index (PlaceBidRequest model)
         {
-            return Ok();
+            var placeBidCommand = mapper.Map<PlaceBidCommand>(model);
+
+            var result = sender.Send(placeBidCommand);
+
+            return Ok(result);
         }
     }
 }

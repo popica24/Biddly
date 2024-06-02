@@ -16,7 +16,7 @@ public class GenericRepository<T>(SqlDataContext context) : IGenericRepository<T
 {
     public async Task<bool> AddAsync(T entity)
     {
-        int rowsAffected = 0;
+        int rowsAffected;
         try
         {
             string tableName = GetTableName();
@@ -33,9 +33,11 @@ public class GenericRepository<T>(SqlDataContext context) : IGenericRepository<T
 
             rowsAffected = await context.Connection.ExecuteScalarAsync<int>(query, entity);
         }
-        catch (Exception ex) { }
-
-        return rowsAffected > 0;
+        catch
+        {
+            return false;
+        }
+       return rowsAffected > 0;
     }
 
     public async Task<bool> UpdateAsync(T entity, params string[] columnsToUpdate)

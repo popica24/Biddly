@@ -9,6 +9,7 @@ namespace Services.Repositories;
 public class BidRepository : IBidRepository
 {
     private readonly IDatabase cacheDb;
+
     public BidRepository()
     {
         string connectionString = Environment.GetEnvironmentVariable("REDIS_CONNECTION")!;
@@ -18,17 +19,36 @@ public class BidRepository : IBidRepository
 
     public bool BidToItem(string bidId, string userId, long ammount)
     {
-        var bidExists = cacheDb.KeyExists(bidId);
-        if (!bidExists)
+        try
+        {
+            var bid = GetBid(GlobalConstants.RedisKeys.BidId(bidId));
+
+            if (bid == null)
+            {
+                return false;
+            }
+
+            if (bid.HighestBid < ammount && bid.StartingFrom < ammount)
+            {
+                bid.HighestBid = ammount;
+                bid.WonBy = userId;
+                SetRunninBid(bid, DateTime.UtcNow.AddDays(7));
+            }
+            return true;
+        }
+        catch
         {
             return false;
         }
-
-        var bid = cacheDb.StringGet(GlobalConstants.RedisKeys.BidId(bidId));
     }
 
     public Bid? GetBid(string bidId)
     {
+        if (string.IsNullOrEmpty(bidId))
+        {
+            return null;
+        }
+
         var bidExists = cacheDb.KeyExists(bidId);
 
         if (!bidExists)
@@ -52,6 +72,11 @@ public class BidRepository : IBidRepository
             return JsonConvert.DeserializeObject<IEnumerable<string>>(bids);
         }
         return [];
+    }
+
+    public bool Persist(Bid bid)
+    {
+        return true;
     }
 
     public bool PushRunningBid(string value)
@@ -81,7 +106,17 @@ public class BidRepository : IBidRepository
 
     public bool RemoveRunningBid(string bidId)
     {
-        throw new NotImplementedException();
+        var newRunningBids = GetRunningBids().Where(id => id != bidId);
+
+        var newRunningBidsSerialized = JsonConvert.SerializeObject(newRunningBids);
+
+        TimeSpan expireTime = TimeSpan.FromDays(7);
+
+        cacheDb.StringSet(GlobalConstants.RedisKeys.RunningBids, newRunningBidsSerialized, expireTime);
+
+        cacheDb.KeyDelete(bidId);
+
+        return true;
     }
 
     public bool SetRunninBid(Bid value, DateTimeOffset expirationTime)
@@ -92,9 +127,7 @@ public class BidRepository : IBidRepository
 
             var json = JsonConvert.SerializeObject(value);
 
-            var key = GlobalConstants.RedisKeys.BidId(value.BidId);
-
-            cacheDb.StringSet(key, json, expireTime);
+            cacheDb.StringSet(value.BidId, json, expireTime);
 
             return true;
         }

@@ -1,15 +1,12 @@
-﻿using Licenta.Hubs;
+﻿using Business.Domain.BidDomain;
+using Licenta.Hubs;
 using Licenta.Models.Bid;
 using MapsterMapper;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using Newtonsoft.Json;
 using Services.BidsModule.Commands.CreateBid;
 using Services.BidsModule.Queries.GetBid;
-using Services.CacheService;
-using Services.Common.DTO.Bid;
-using Services.Utils;
 
 namespace Licenta.Controllers;
 
@@ -20,7 +17,7 @@ public class BiddingController(IHubContext<BidHub, IBidsHubClient> biddingHub,IS
     [HttpPost]
     public async Task<IActionResult> CreateAsync(CreateBidRequest model)
     {
-        var bidModel = mapper.Map<RunningBid>(model);
+        var bidModel = mapper.Map<Bid>(model);
 
         var createBidCommand = mapper.Map<CreateBidCommand>(bidModel);
 

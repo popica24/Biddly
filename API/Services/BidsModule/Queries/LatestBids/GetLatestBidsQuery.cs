@@ -1,6 +1,5 @@
 ﻿using Business.Domain.BidDomain;
 using MediatR;
-using Services.Common.DTO.Bid;
 
 namespace Services.BidsModule.Queries.LatestBids;
 

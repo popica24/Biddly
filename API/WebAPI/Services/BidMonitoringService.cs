@@ -1,50 +1,50 @@
-﻿
-using Licenta.Hubs;
+﻿using Licenta.Hubs;
 using MediatR;
 using Microsoft.AspNetCore.SignalR;
-using Newtonsoft.Json;
-using Services.CacheService;
-using Services.Common.DTO.Bid;
-using Services.Utils;
+using Services.BidsModule.Commands.RemoveBid;
+using Services.BidsModule.Queries.LatestBids;
 
-namespace Licenta.Services;
-
-public class BidMonitoringService(IHubContext<BidHub, IBidsHubClient> biddingHub, ICacheService cacheService, ISender sender) : BackgroundService
+namespace Licenta.Services
 {
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public class BidMonitoringService : BackgroundService
     {
-       /* while(!stoppingToken.IsCancellationRequested)
+        private readonly IHubContext<BidHub, IBidsHubClient> _biddingHub;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+
+        public BidMonitoringService(IHubContext<BidHub, IBidsHubClient> biddingHub, IServiceScopeFactory serviceScopeFactory)
         {
-            string _bidsIdJson = cacheService.GetData<string>(GlobalConstants.RedisKeys.RunningBids);
+            _biddingHub = biddingHub;
+            _serviceScopeFactory = serviceScopeFactory;
+        }
 
-            var _bidsId = new List<string>();
-
-            if (!string.IsNullOrEmpty(_bidsIdJson))
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            while (!stoppingToken.IsCancellationRequested)
             {
-                _bidsId = JsonConvert.DeserializeObject<List<string>>(_bidsIdJson);
-            }
+                using (var scope = _serviceScopeFactory.CreateScope())
+                {
+                    var sender = scope.ServiceProvider.GetRequiredService<ISender>();
 
-            var now = DateTime.UtcNow;
+                    var getRunningBidsQuery = new GetLatestBidsQuery();
+                    var runningBids = await sender.Send(getRunningBidsQuery, stoppingToken);
 
-            foreach(var bidId in _bidsId.ToList())
-            {
-                var bidModelJson = cacheService.GetData<string>(GlobalConstants.RedisKeys.BidId(bidId));
+                    var now = DateTime.Now;
 
-                var bidModel = JsonConvert.DeserializeObject<RunningBid>(bidModelJson);
+                    foreach (var bidModel in runningBids.ToList())
+                    {
+                        if (bidModel != null && bidModel.WonAt <= now)
+                        {
+                            await _biddingHub.Clients.All.BidEnded(bidModel.BidId);
+                            await _biddingHub.Clients.All.UpdateLatestBids();
 
-                if (bidModel.EndingAt <= now) {
-                    await biddingHub.Clients.All.BidEnded(GlobalConstants.RedisKeys.BidId(bidId));
-                    await biddingHub.Clients.All.UpdateLatestBids();
-
-                    cacheService.RemoveData(GlobalConstants.RedisKeys.BidId(bidId));
-
-                    _bidsId.Remove(bidId);
-                    var newBidsJson = JsonConvert.SerializeObject(_bidsId);
-                    cacheService.SetData(GlobalConstants.RedisKeys.RunningBids, newBidsJson, DateTime.Now.AddDays(7));
+                            var removeBidCommand = new FinishBidCommand(bidModel);
+                            await sender.Send(removeBidCommand, stoppingToken);
+                        }
+                    }
                 }
-            }
 
-            await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
-        }*/
+                await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+            }
+        }
     }
 }
