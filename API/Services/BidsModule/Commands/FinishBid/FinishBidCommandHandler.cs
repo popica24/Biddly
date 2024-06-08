@@ -8,14 +8,18 @@ public sealed class FinishBidCommandHandler(IUnitOfWork unitOfWork, IMapper mapp
 {
     public async Task<bool> Handle(FinishBidCommand request, CancellationToken cancellationToken)
     {
-        if(string.IsNullOrEmpty(request.bid.WonBy) || request.bid.HighestBid == 0)
+        if (string.IsNullOrEmpty(request.bid.WonBy) || request.bid.HighestBid == 0)
         {
             unitOfWork.BidRepository.RemoveRunningBid(request.bid.BidId);
 
             return false;
         }
 
-        var item = mapper.Map<Item>(request.bid);
+        var username = (await unitOfWork.UserRepository.GetByColumnAsync("id", request.bid.WonBy, "username")).FirstOrDefault()?.UserName;
+
+        var item = mapper.Map<PastBid>(request.bid);
+
+        item.Username = username ?? string.Empty;
 
         var persistResult = await unitOfWork.ItemRepository.AddAsync(item);
 

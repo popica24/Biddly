@@ -4,6 +4,8 @@ public static class GlobalConstants
 {
     public const string RefreshTokenCookieKey = "refreshToken";
 
+    public const string AccessTokenCookieKey = "Bearer";
+
     public static class RedisKeys
     {
         public const string RunningBids = "running-bids";

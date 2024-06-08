@@ -1,3 +1,3 @@
 ﻿namespace Services.Common.DTO;
 
-public record UserResponse(string Username, string Email);
+public record UserResponse(string id, string Username, string Email);

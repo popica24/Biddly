@@ -1,24 +1,23 @@
 import { ReactNode, createContext, useContext } from "react";
-import biddingRepository from "../services/repos/biddingRepository";
-
-export const BidRepositoryContext = createContext<
-  biddingRepository | undefined
->(undefined);
+import bidRepository from "../services/repos/bidRepository";
+export const BidRepositoryContext = createContext<bidRepository | undefined>(
+  undefined
+);
 
 type ProviderProps = {
   children: ReactNode;
 };
 
 export const BidRepositoryProvider = ({ children }: ProviderProps) => {
-  const bidsRepository = new biddingRepository();
+  const BidRepository = new bidRepository();
 
   return (
-    <BidRepositoryContext.Provider value={bidsRepository}>
+    <BidRepositoryContext.Provider value={BidRepository}>
       {children}
     </BidRepositoryContext.Provider>
   );
 };
 
-export const useBidding = () => {
+export const useBid = () => {
   return useContext(BidRepositoryContext);
 };

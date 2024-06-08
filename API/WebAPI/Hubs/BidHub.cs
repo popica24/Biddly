@@ -18,4 +18,9 @@ public class BidHub : Hub<IBidsHubClient>
     {
         await Clients.All.BidEnded(bidId);
     }
+
+    public async Task AnnounceWinner(string bidId)
+    {
+        await Clients.All.AnnounceWinner(bidId);
+    }
 }

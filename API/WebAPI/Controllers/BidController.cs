@@ -19,7 +19,15 @@ namespace Licenta.Controllers
         {
             var placeBidCommand = mapper.Map<PlaceBidCommand>(model);
 
-            var result = sender.Send(placeBidCommand);
+            var response = sender.Send(placeBidCommand);
+
+            var result = response.Result;
+
+            if (result)
+            {
+               biddingHub.Clients.All.UpdateHighestBid();
+                biddingHub.Clients.All.UpdateLatestBids();
+            }
 
             return Ok(result);
         }

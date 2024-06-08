@@ -15,6 +15,7 @@ public sealed class CreateBidCommandHandler(IUnitOfWork unitOfWork) : IRequestHa
             HighestBid = request.HighestBid,
             ItemName = request.ItemName,
             StartingFrom = request.StartingFrom,
+            StartingAt = request.StartingAt,
             WonAt = request.WonAt,
             WonBy = request.WonBy,
         };

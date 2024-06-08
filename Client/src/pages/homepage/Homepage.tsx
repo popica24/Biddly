@@ -1,20 +1,25 @@
 import { HubConnectionBuilder } from "@microsoft/signalr";
 import { useEffect, useState } from "react";
 import { useLatestBids } from "../../context/LatestBidsRepositoryContext";
-import { BidModel } from "../../utils/types";
+import { BidModel, PastBid } from "../../utils/types";
 import BidCard from "./components/BidCard";
+import { usePastBids } from "../../context/PastBidsRepositoryContext";
+import PastBidCard from "./components/PastBidCard";
 
 const Homepage = () => {
   const latestBidsRepo = useLatestBids();
+  const pastBidsRepo = usePastBids();
 
   const [latestBids, setLatestBids] = useState<BidModel[]>();
+  const [pastBids, setPastBids] = useState<PastBid[]>();
   useEffect(() => {
     const connection = new HubConnectionBuilder()
       .withUrl("https://localhost:7174/biddingHub")
       .build();
 
     connection.on("UpdateLatestBids", async () => {
-      fetchBids();
+      fetchLatestBids();
+      fetchPastBids();
     });
     connection.start().catch((err) => console.error("Connection error: ", err));
     return () => {
@@ -23,11 +28,16 @@ const Homepage = () => {
   });
 
   useEffect(() => {
-    fetchBids();
+    fetchLatestBids();
+    fetchPastBids();
   }, []);
-  const fetchBids = async () => {
+  const fetchLatestBids = async () => {
     var response = await latestBidsRepo?.getMany();
     setLatestBids(response?.data);
+  };
+  const fetchPastBids = async () => {
+    var response = await pastBidsRepo?.getMany();
+    setPastBids(response?.data);
   };
 
   return (
@@ -35,7 +45,7 @@ const Homepage = () => {
       <div data-aos="fade-up">
         <h1 className="text-6xl text-center font-thin">Biddly</h1>
         <section
-          className="text-center mt-4"
+          className="text-center my-4"
           data-aos="fade-up"
           data-aos-delay="200"
         >
@@ -44,18 +54,32 @@ const Homepage = () => {
             bid on exclusive items from the comfort of your home.
           </p>
         </section>
-        <section className="flex flex-row flex-wrap justify-center">
-          {latestBids?.map((l) => {
+        <span className="container px-28 font-thin text-4xl">Live bids</span>
+        <section className="flex flex-row flex-wrap justify-center items-start">
+          {latestBids?.map((l, i) => {
             return (
-              <BidCard
-                name={l.bidName}
-                startsAt={l.startsAt}
-                highestBid={l.highestBid}
-                bidId={l.bidId}
-              />
+              <div data-aos="flip-left" data-aos-delay={`${100 + i * 200}`}>
+                <BidCard {...l} />
+              </div>
             );
           })}
         </section>
+        <div className="mt-16">
+          <span className="container px-28 font-thin text-4xl">Past bids</span>
+          <section className="flex flex-row flex-wrap justify-center items-center">
+            {pastBids?.map((l, i) => {
+              return (
+                <div
+                  className="w-full max-w-[15rem]"
+                  data-aos="flip-left"
+                  data-aos-delay={`${100 + i * 200}`}
+                >
+                  <PastBidCard {...l} />
+                </div>
+              );
+            })}
+          </section>
+        </div>
       </div>
     </div>
   );

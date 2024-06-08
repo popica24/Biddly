@@ -1,28 +1,20 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 as build-env
+# Dockerfile for .NET WebAPI
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 WORKDIR /app
 
-# Copy csproj files and restore dependencies
+# Copy csproj file and restore dependencies
 COPY WebAPI/*.csproj ./
 RUN dotnet restore
 
-# Copy the entire solution
+# Copy everything else and build
 COPY . ./
-
-# Publish both projects
-WORKDIR /app
-RUN dotnet publish WebAPI/WebAPI.csproj -c Release -o out/WebAPI
-RUN dotnet publish Services/Services.csproj -c Release -o out/Services
-RUN dotnet publish Domain/Business.csproj -c Release -o out/Domain
+RUN dotnet publish WebAPI/WebAPI.csproj -c Release -o out
 
 # Build runtime image
-FROM mcr.microsoft.com/dotnet/sdk:8.0 as final-env
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
-COPY --from=build-env /app/out/WebAPI ./WebAPI
-COPY --from=build-env /app/out/Services ./Services
-COPY --from=build-env /app/out/Domain ./Domain
-
-# Copy the JSON file from local machine to Docker container
+COPY --from=build-env /app/out .
 
 EXPOSE 80
 
-ENTRYPOINT [ "dotnet", "WebAPI/WebAPI.dll" ]
+ENTRYPOINT ["dotnet", "WebAPI.dll"]

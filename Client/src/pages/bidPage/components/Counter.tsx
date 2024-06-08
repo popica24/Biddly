@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 
 type Props = {
   endsAt: string | undefined;
+  timerExpired: boolean;
+  setTimerExpired: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const Counter = (props: Props) => {
@@ -32,7 +34,7 @@ const Counter = (props: Props) => {
         newTimeLeft.minutes === 0 &&
         newTimeLeft.seconds === 0
       ) {
-        setTimerExpired(true);
+        props.setTimerExpired(true);
         clearInterval(timer);
       }
     }, 1000);
@@ -43,15 +45,15 @@ const Counter = (props: Props) => {
       timeLeft.minutes === 0 &&
       timeLeft.seconds === 0
     ) {
-      setTimerExpired(true);
+      props.setTimerExpired(true);
     }
 
     return () => clearInterval(timer);
   }, [props.endsAt]);
 
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
-  const [timerExpired, setTimerExpired] = useState(false);
-  if (timerExpired) {
+
+  if (props.timerExpired) {
     return <></>;
   }
   return (

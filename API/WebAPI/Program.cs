@@ -1,11 +1,8 @@
-using Business.Contracts;
 using Licenta.Hubs;
-using Licenta.Services;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.OpenApi.Models;
 using Services;
-using Services.CacheService;
 using Services.Configuration;
-using Services.Context;
 using Swashbuckle.AspNetCore.Filters;
 using WebAPI.Common.Mappings;
 using WebAPI.Configuration;
@@ -24,7 +21,7 @@ builder.Services.AddCors(options =>
         builder.AllowAnyMethod()
                .AllowAnyHeader()
                .AllowCredentials()
-               .WithOrigins("http://localhost:5173"); // URL of your React app
+               .WithOrigins("http://localhost:5173");
     });
 });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -44,6 +41,7 @@ builder.Services.AddTransient<IConnectionString>(x => new ConnectionString(build
 builder.Services.AddMappings();
 builder.Services.AddApplicationServices();
 builder.Services.AddApiServices();
+builder.Services.AddHealthChecks();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -52,7 +50,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.MapHealthChecks("/health");
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 app.UseCors("CorsPolicy");
+
 app.UseHttpsRedirection();
 
 app.UseAuthorization();

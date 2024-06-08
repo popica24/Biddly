@@ -22,8 +22,9 @@ public sealed class RefreshTokenCommandHandler(IUnitOfWork unitOfWork, IHttpCont
             return "Token expired !";
         }
 
-        var accessToken = await authTokenService.CreateTokenAsync(user);
-        return accessToken;
+        await authTokenService.CreateTokenAsync(user);
+
+        return "Token Created !";
     }
 }
 

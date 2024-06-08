@@ -22,9 +22,9 @@ namespace Licenta.Controllers
             {
                 var loginRequest = mapper.Map<LoginUserRequest>(userRequest);
 
-               var token = await Login(loginRequest);
+               var result = await Login(loginRequest);
 
-                return Ok(token);
+                return Ok(result);
             }
          
             if(authType == "register")
@@ -41,9 +41,9 @@ namespace Licenta.Controllers
         {
             var loginUserCommand = mapper.Map<LoginUserQuery>(loginRequest);
 
-            var token = await sender.Send(loginUserCommand);
+            var result = await sender.Send(loginUserCommand);
 
-            return token;
+            return result;
         }
 
         private async Task<bool> Register(RegisterUserRequest regiterRequest)

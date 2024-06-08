@@ -21,7 +21,7 @@ public class BidRepository : IBidRepository
     {
         try
         {
-            var bid = GetBid(GlobalConstants.RedisKeys.BidId(bidId));
+            var bid = GetBid(bidId);
 
             if (bid == null)
             {

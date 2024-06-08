@@ -1,4 +1,38 @@
-const Login = () => {
+import { useState } from "react";
+import authService from "../../../services/authService";
+
+type Props = {
+  setPanel: React.Dispatch<React.SetStateAction<number>>;
+};
+
+const Login = (props: Props) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(false);
+  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    authService
+      .Login(email, password)
+      .then(() => {
+        setLoading(false);
+        setSuccess(true);
+        setError(false);
+        const event = new Event("tokenChanged");
+        window.dispatchEvent(event);
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 2000);
+      })
+      .catch(() => {
+        setLoading(false);
+        setSuccess(false);
+        setError(true);
+      });
+  };
+
   return (
     <section className="bg-gray-50 dark:bg-gray-900">
       <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
@@ -11,7 +45,10 @@ const Login = () => {
             <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
               Sign in to your account
             </h1>
-            <form className="space-y-4 md:space-y-6" action="#">
+            <form
+              className="space-y-4 md:space-y-6"
+              onSubmit={(e) => handleLogin(e)}
+            >
               <div>
                 <label
                   htmlFor="email"
@@ -20,6 +57,8 @@ const Login = () => {
                   Your email
                 </label>
                 <input
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   type="email"
                   name="email"
                   id="email"
@@ -36,6 +75,8 @@ const Login = () => {
                   Password
                 </label>
                 <input
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   type="password"
                   name="password"
                   id="password"
@@ -72,18 +113,25 @@ const Login = () => {
                 </a>
               </div>
               <button
+                disabled={loading || success}
                 type="submit"
                 className="w-full text-black border border-blue-700 bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
               >
-                Sign in
+                {loading && "Logging you in..."}
+                {success && "Success !"}
+                {error && "Error !"}
+                {!loading && !success && !error && "Sign in"}
               </button>
-              <p className="text-sm font-light text-gray-500 dark:text-gray-400">
-                Don’t have an account yet?{" "}
-                <span className="font-medium text-primary-600 hover:underline dark:text-primary-500">
-                  Sign up
-                </span>
-              </p>
             </form>
+            <p className="text-sm font-light text-gray-500 dark:text-gray-400">
+              Don’t have an account yet?{" "}
+              <button
+                className="font-medium text-primary-600 hover:underline dark:text-primary-500"
+                onClick={() => props.setPanel(2)}
+              >
+                Sign up
+              </button>
+            </p>
           </div>
         </div>
       </div>

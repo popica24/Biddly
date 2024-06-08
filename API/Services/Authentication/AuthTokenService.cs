@@ -19,17 +19,18 @@ public sealed class AuthTokenService(IOptions<JwtOptions> jwtOptions, IHttpConte
 
     public async Task<string> CreateTokenAsync(User user)
     {
-        var accessToken = GenerateToken(user);
-        var newRefreshToken = GenerateRefreshToken();
-        SetRefreshTokenAsHttpOnlyCookie(newRefreshToken);
-
-        unitOfWork.BeginTransaction();
-        user.RefreshToken = newRefreshToken.TokenValue;
-        user.RefreshTokenExpiryDate = newRefreshToken.Expires;
-        await unitOfWork.UserRepository.UpdateAsync(user);
-        unitOfWork.CommitAndCloseConnection();
+       
+            var accessToken = GenerateToken(user);
+            var newRefreshToken = GenerateRefreshToken();
+            unitOfWork.BeginTransaction();
+            user.RefreshToken = newRefreshToken.TokenValue;
+            user.RefreshTokenExpiryDate = newRefreshToken.Expires;
+            await unitOfWork.UserRepository.UpdateAsync(user);
+            unitOfWork.CommitAndCloseConnection();
+            SetRefreshTokenAsHttpOnlyCookie(newRefreshToken);
 
         return accessToken;
+     
     }
 
     private static RefreshToken GenerateRefreshToken()
@@ -37,7 +38,7 @@ public sealed class AuthTokenService(IOptions<JwtOptions> jwtOptions, IHttpConte
         return new RefreshToken
         {
             TokenValue = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
-            Expires = DateTime.Now.AddDays(7)
+            Expires = DateTime.UtcNow.AddDays(7)
         };
     }
 
@@ -65,15 +66,17 @@ public sealed class AuthTokenService(IOptions<JwtOptions> jwtOptions, IHttpConte
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    public void SetRefreshTokenAsHttpOnlyCookie(RefreshToken refreshToken)
+    private void SetRefreshTokenAsHttpOnlyCookie(RefreshToken refreshToken)
     {
-        var cookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Expires = refreshToken.Expires,
-        };
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = refreshToken.Expires,
+                SameSite = SameSiteMode.None,
+                Secure = true
+            };
 
-        var httpContext = httpContextAccessor.HttpContext;
-        httpContext?.Response.Cookies.Append(GlobalConstants.RefreshTokenCookieKey, refreshToken.TokenValue, cookieOptions);
+            var httpContext = httpContextAccessor.HttpContext;
+            httpContext?.Response.Cookies.Append(GlobalConstants.RefreshTokenCookieKey, refreshToken.TokenValue, cookieOptions);
     }
 }

@@ -3,16 +3,19 @@ import { Link } from "react-router-dom";
 
 type Props = {
   bidId: string;
-  name: string;
-  startsAt: string;
+  itemName: string;
+  startingAt: string;
   highestBid: number;
 };
 
 const BidCard = (props: Props) => {
   const calculateTimeLeft = () => {
-    const startDate = new Date(props.startsAt).getTime();
+    const startDate = new Date(props.startingAt).getTime();
+
     const currentTime = new Date().getTime();
+
     const difference = startDate - currentTime;
+
     let timeLeft = {
       hours: 0,
       minutes: 0,
@@ -58,9 +61,10 @@ const BidCard = (props: Props) => {
     }
 
     return () => clearInterval(timer);
-  }, [props.startsAt]);
+  }, [props.startingAt]);
+
   return (
-    <div className="w-full max-w-xs bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 m-4">
+    <div className="w-full max-w-[15rem] bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 m-4">
       <img
         width={300}
         className={`p-8 rounded-t-lg aspect-[3/4] ${
@@ -72,7 +76,7 @@ const BidCard = (props: Props) => {
 
       <div className="px-5 pb-5">
         <h5 className="text-xl font-semibold tracking-tight text-gray-900 dark:text-white">
-          {props.name}
+          {props.itemName}
         </h5>
         <div className="flex items-center justify-between">
           <span className="text-xl font-bold text-gray-900 dark:text-white">
@@ -88,7 +92,7 @@ const BidCard = (props: Props) => {
             <span>{timeLeft.seconds || "00"} seconds</span>
           </div>
         ) : (
-          <div className="my-6 flex items-center flex-row justify-evenly">
+          <div className="my-6 grid grid-cols-2">
             <Link
               to={"/bid/" + props.bidId}
               className=" text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"

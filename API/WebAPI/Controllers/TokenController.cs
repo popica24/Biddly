@@ -17,7 +17,7 @@ namespace WebAPI.Controllers
         {
             var refreshTokenCommand = mapper.Map<RefreshTokenCommand>(request);
 
-            var result= await sender.Send(refreshTokenCommand);
+            var result = await sender.Send(refreshTokenCommand);
 
             return !string.IsNullOrEmpty(result) ? Ok(result) : Problem(result);
         }

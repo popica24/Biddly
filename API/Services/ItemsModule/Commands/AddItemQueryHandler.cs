@@ -10,7 +10,7 @@ public sealed class AddItemQueryHandler(IUnitOfWork unitOfWork, IMapper mapper) 
     public async Task<bool> Handle(AddItemQuery request, CancellationToken cancellationToken)
     {
         unitOfWork.BeginTransaction();
-        var item = mapper.Map<Item>(request);
+        var item = mapper.Map<PastBid>(request);
         var added = await unitOfWork.ItemRepository.AddAsync(item);
         unitOfWork.CommitAndCloseConnection();
         return added;

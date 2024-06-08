@@ -1,15 +1,13 @@
-import { BidModel, BidSearchParameters } from "../../utils/types";
+import { PlaceBidRequest } from "../../utils/types";
 import {BaseRepository } from "../BaseRepository";
 
-class bidRepository extends BaseRepository<BidModel, BidSearchParameters>{
-    collection = "bidding"
+class bidRepository extends BaseRepository<PlaceBidRequest, null>{
+    collection = "bid"
 
-    getMany(){
-        return super.getMany();
+    create(placeBid: PlaceBidRequest){
+        return super.create(placeBid);
     }
-    get(id: string){
-        return super.get(id);
-    }
+
 }
 
 export default bidRepository;

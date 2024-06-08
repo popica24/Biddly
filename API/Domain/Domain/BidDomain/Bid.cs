@@ -10,6 +10,8 @@ public class Bid
 
     public string WonBy { get; set; } = string.Empty;
 
+    public DateTime StartingAt { get; set; }
+
     public DateTime WonAt { get; set; }
 
     public long HighestBid { get; set; } = 0;

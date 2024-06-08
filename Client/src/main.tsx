@@ -4,15 +4,31 @@ import { RouterProvider } from "react-router-dom";
 import { router } from "./utils/Router";
 import "./index.css";
 import { LatestBidsRepositoryProvider } from "./context/LatestBidsRepositoryContext";
-import { BidsRepositoryProvider } from "./context/BidsRepositoryContext";
+import { BidsRepositoryProvider } from "./context/BiddingRepositoryContext";
 import { BidRepositoryProvider } from "./context/BidRepositoryContext";
+import { CookiesProvider } from "react-cookie";
+import { UserRepositoryProvider } from "./context/UserRepositoryContext";
+import { AuthProvider } from "./context/AuthContext";
+import "flowbite/dist/datepicker";
+import { WinnerRepositoryProvider } from "./context/WinnerRepositoryContext";
+import { PastBidsRepositoryProvider } from "./context/PastBidsRepositoryContext";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <LatestBidsRepositoryProvider>
       <BidsRepositoryProvider>
-        <BidRepositoryProvider>
-          <RouterProvider router={router} />
-        </BidRepositoryProvider>
+        <CookiesProvider>
+          <WinnerRepositoryProvider>
+            <UserRepositoryProvider>
+              <BidRepositoryProvider>
+                <PastBidsRepositoryProvider>
+                  <AuthProvider>
+                    <RouterProvider router={router} />
+                  </AuthProvider>
+                </PastBidsRepositoryProvider>
+              </BidRepositoryProvider>
+            </UserRepositoryProvider>
+          </WinnerRepositoryProvider>
+        </CookiesProvider>
       </BidsRepositoryProvider>
     </LatestBidsRepositoryProvider>
   </React.StrictMode>

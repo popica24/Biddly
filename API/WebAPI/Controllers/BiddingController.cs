@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Services.BidsModule.Commands.CreateBid;
 using Services.BidsModule.Queries.GetBid;
+using Services.BidsModule.Queries.GetPastBid;
+using WebAPI.Models.Bid;
 
 namespace Licenta.Controllers;
 
@@ -17,6 +19,7 @@ public class BiddingController(IHubContext<BidHub, IBidsHubClient> biddingHub,IS
     [HttpPost]
     public async Task<IActionResult> CreateAsync(CreateBidRequest model)
     {
+
         var bidModel = mapper.Map<Bid>(model);
 
         var createBidCommand = mapper.Map<CreateBidCommand>(bidModel);
@@ -37,10 +40,27 @@ public class BiddingController(IHubContext<BidHub, IBidsHubClient> biddingHub,IS
     [HttpGet("{bidId}")]
     public async Task<IActionResult> GetAsync(string bidId)
     {
-        var getBidQuery = new GetBidQuery(bidId);
+        var key = bidId.Replace("bid-", "");
+        var getBidQuery = new GetBidQuery(key);
 
         var bid = await sender.Send(getBidQuery);
 
-        return Ok(bid);
+        if(bid == null)
+        {
+            var getPastBidQuery = new GetPastBidQuery(key);
+
+            var pastBid = await sender.Send(getPastBidQuery);
+
+            if(pastBid == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(pastBid);
+        }
+
+        var bidModel = mapper.Map<BidResponse>(bid);
+
+        return Ok(bidModel);
     }
 }

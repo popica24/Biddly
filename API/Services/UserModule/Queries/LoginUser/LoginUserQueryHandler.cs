@@ -13,8 +13,8 @@ internal class LoginUserQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, IAu
 
         if (user is not null && BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
-            var accessToken = await authTokenService.CreateTokenAsync(user);
-            return accessToken;
+            var token = await authTokenService.CreateTokenAsync(user);
+            return token;
         }
 
         return "Invalid email or password";

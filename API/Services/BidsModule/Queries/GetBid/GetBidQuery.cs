@@ -3,5 +3,5 @@ using MediatR;
 
 namespace Services.BidsModule.Queries.GetBid;
 
-public record GetBidQuery(string BidId) : IRequest<Bid>;
+public record GetBidQuery(string BidId) : IRequest<Bid?>;
 

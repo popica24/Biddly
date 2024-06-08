@@ -1,21 +1,21 @@
-# Stage 1: Build the React app
-FROM node:16 AS build
+FROM node:18-alpine as build
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+COPY package*.json .
+
 RUN npm install
 
-COPY . ./
+COPY . .
+
+ENV VITE_API_LOCAL_URL = https://localhost:7174/api
+
 RUN npm run build
 
-# Stage 2: Serve the React app using Nginx
-FROM nginx:alpine
+FROM nginx:alpine as prod
 
-COPY --from=build /app/build /usr/share/nginx/html
-
-# Optional: Copy custom Nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist /usr/share/nginx/html/public
+COPY default.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 

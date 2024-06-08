@@ -3,11 +3,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Business.Domain.ItemDomain;
 
-public class Item
+public class PastBid
 {
     [Key]
-    [Column("itemid")]
-    public required string ItemId { get; set; }
+    [Column("id")]
+    public required string Id { get; set; }
+
+    [Column("bidid")]
+    public string BidId { get; set; }
 
     [Column("createdby")]
     public string CreatedBy { get; set; }
@@ -23,4 +26,7 @@ public class Item
 
     [Column("wonat")]
     public DateTime WonAt { get; set; }
+
+    [Column("username")]
+    public string Username { get; set; }
 }

@@ -33,6 +33,7 @@ export abstract class BaseRepository<T, S>
   extends HttpClient
   implements IBaseRepository<T, S>
 {
+  //Implementarea metodelor de baza pentru operatiuni CRUD
   public async search(searchParameters: S): Promise<ApiResponse<T[]>> {
     const instance = this.createInstance();
     const result = await instance
