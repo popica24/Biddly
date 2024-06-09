@@ -12,6 +12,7 @@ const Homepage = () => {
 
   const [latestBids, setLatestBids] = useState<BidModel[]>();
   const [pastBids, setPastBids] = useState<PastBid[]>();
+
   useEffect(() => {
     const connection = new HubConnectionBuilder()
       .withUrl("https://localhost:7174/biddingHub")
@@ -31,6 +32,7 @@ const Homepage = () => {
     fetchLatestBids();
     fetchPastBids();
   }, []);
+
   const fetchLatestBids = async () => {
     var response = await latestBidsRepo?.getMany();
     setLatestBids(response?.data);
@@ -41,45 +43,55 @@ const Homepage = () => {
   };
 
   return (
-    <div className="mt-32">
+    <div className="mt-28 container mx-auto xl:px-36">
       <div data-aos="fade-up">
         <h1 className="text-6xl text-center font-thin">Biddly</h1>
-        <section
-          className="text-center my-4"
-          data-aos="fade-up"
-          data-aos-delay="200"
+      </div>
+      <section
+        className="text-center my-4"
+        data-aos="fade-up"
+        data-aos-delay="200"
+      >
+        <p className="text-lg font-light">
+          A premier platform for live and online bidding. <br /> Discover and
+          bid on exclusive items from the comfort of your home.
+        </p>
+      </section>
+      <h2
+        className="mb-4 text-4xl font-thin text-gray-900 dark:text-white"
+        data-aos="slide-right"
+      >
+        Live Bids
+      </h2>
+      <section className="flex xl:flex-row flex-col flex-wrap xl:justify-start justify-center items-center">
+        {latestBids?.map((l, i) => {
+          return (
+            <div data-aos-delay={`${100 + i * 200}`} className="xl:me-12">
+              <BidCard {...l} i={i} />
+            </div>
+          );
+        })}
+      </section>
+      <div className="mt-16">
+        <h2
+          className="mb-4 text-4xl font-thin text-gray-900 dark:text-white"
+          data-aos="slide-right"
         >
-          <p className="text-lg font-light">
-            A premier platform for live and online bidding. <br /> Discover and
-            bid on exclusive items from the comfort of your home.
-          </p>
-        </section>
-        <span className="container px-28 font-thin text-4xl">Live bids</span>
-        <section className="flex flex-row flex-wrap justify-center items-start">
-          {latestBids?.map((l, i) => {
+          Past Bids
+        </h2>
+        <section className="flex xl:flex-row flex-col flex-wrap xl:justify-start justify-center items-center">
+          {pastBids?.map((l, i) => {
             return (
-              <div data-aos="flip-left" data-aos-delay={`${100 + i * 200}`}>
-                <BidCard {...l} />
+              <div
+                data-aos="flip-left"
+                data-aos-delay={`${100 + i * 200}`}
+                className="xl:me-12"
+              >
+                <PastBidCard {...l} />
               </div>
             );
           })}
         </section>
-        <div className="mt-16">
-          <span className="container px-28 font-thin text-4xl">Past bids</span>
-          <section className="flex flex-row flex-wrap justify-center items-center">
-            {pastBids?.map((l, i) => {
-              return (
-                <div
-                  className="w-full max-w-[15rem]"
-                  data-aos="flip-left"
-                  data-aos-delay={`${100 + i * 200}`}
-                >
-                  <PastBidCard {...l} />
-                </div>
-              );
-            })}
-          </section>
-        </div>
       </div>
     </div>
   );

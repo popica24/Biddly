@@ -71,31 +71,13 @@ public class GenericRepository<T>(SqlDataContext context) : IGenericRepository<T
 
             //now the query looks like this : UPDATE _____ SET ____ = @____ WHERE _____ = @______
 
-            string queryForAffectedRows = $"WITH ROWS AS ({query} RETURNING 1) SELECT COUNT(*) FROM ROWS";
+            string queryForAffectedRows = $"{query} RETURNING 1";
 
             rowsAffected = await context.Connection.ExecuteAsync(queryForAffectedRows, entity);
         }
         catch (Exception ex) { }
 
         return rowsAffected > 0;
-    }
-
-    protected static string GetKeyPropertyName()
-    {
-        var properties = typeof(T).GetProperties()
-            .Where(p => p.GetCustomAttribute<KeyAttribute>() != null);
-
-        return properties.Any() ? properties.FirstOrDefault().Name : null;
-
-
-    }
-
-    protected IEnumerable<PropertyInfo> GetProperties(bool excludeKey = false)
-    {
-        var properties = typeof(T).GetProperties()
-            .Where(p => !excludeKey || p.GetCustomAttribute<KeyAttribute>() == null);
-
-        return properties;
     }
 
     public async Task<IEnumerable<T>> GetByColumnAsync(string columnName, string columnValue, params string[] selectData)
@@ -177,5 +159,23 @@ public class GenericRepository<T>(SqlDataContext context) : IGenericRepository<T
         }
 
         return null;
+    }
+
+    protected static string GetKeyPropertyName()
+    {
+        var properties = typeof(T).GetProperties()
+            .Where(p => p.GetCustomAttribute<KeyAttribute>() != null);
+
+        return properties.Any() ? properties.FirstOrDefault().Name : null;
+
+
+    }
+
+    protected IEnumerable<PropertyInfo> GetProperties(bool excludeKey = false)
+    {
+        var properties = typeof(T).GetProperties()
+            .Where(p => !excludeKey || p.GetCustomAttribute<KeyAttribute>() == null);
+
+        return properties;
     }
 }

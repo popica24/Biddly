@@ -1,5 +1,4 @@
 ﻿using Business.Domain.UserDomain;
-using Services.Common.DTO.Token;
 
 namespace Services.Authentication;
 

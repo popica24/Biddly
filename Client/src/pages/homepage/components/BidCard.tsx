@@ -1,12 +1,22 @@
 import { useEffect, useState } from "react";
+import { CiClock2, CiNoWaitingSign } from "react-icons/ci";
 import { Link } from "react-router-dom";
 
 type Props = {
+  i: number;
   bidId: string;
   itemName: string;
   startingAt: string;
   highestBid: number;
+  startingFrom: number;
+  wonAt: string;
 };
+
+const imgLib = [
+  "https://washingtonwatchgroup.com/wp-content/uploads/2023/04/m126506-0001_collection_upright_portrait.jpg",
+  "https://media.richardmille.com/wp-content/uploads/2022/09/21141757/RM-88view.png?dpr=3&width=187.5",
+  "https://www.audemarspiguet.com/content/dam/ap/com/products/watches/MTR010402AA/importer/watch.png.transform.appdpmain.png",
+];
 
 const BidCard = (props: Props) => {
   const calculateTimeLeft = () => {
@@ -62,15 +72,28 @@ const BidCard = (props: Props) => {
 
     return () => clearInterval(timer);
   }, [props.startingAt]);
+  const date = new Date(props.wonAt);
+  const readableDate = date.toLocaleString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    hour12: false,
+  });
 
   return (
-    <div className="w-full max-w-[15rem] bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 m-4">
+    <Link
+      to={timerExpired ? `${"/bid/" + props.bidId}` : "#"}
+      className={`bg-white border border-gray-200 rounded-lg ${
+        !timerExpired ? "cursor-not-allowed" : "cursor-pointer"
+      }`}
+    >
       <img
         width={300}
-        className={`p-8 rounded-t-lg aspect-[3/4] ${
-          !timerExpired ? "cursor-not-allowed" : "cursor-pointer"
-        }`}
-        src="https://media.richardmille.com/wp-content/uploads/2022/09/21141757/RM-88view.png?dpr=3&width=187.5"
+        className="mx-auto p-8 rounded-t-lg aspect-[3/4]"
+        src={imgLib[props.i]}
         alt="product image"
       />
 
@@ -78,37 +101,56 @@ const BidCard = (props: Props) => {
         <h5 className="text-xl font-semibold tracking-tight text-gray-900 dark:text-white">
           {props.itemName}
         </h5>
-        <div className="flex items-center justify-between">
-          <span className="text-xl font-bold text-gray-900 dark:text-white">
-            {timerExpired && props.highestBid !== 0 && (
-              <span>Highest bid : {props.highestBid}</span>
+        <div className="inline-flex items-center">
+          {timerExpired ? (
+            <>
+              <CiClock2 size={"16px"} /> <p className="ms-1">Live</p>
+            </>
+          ) : (
+            <>
+              <CiNoWaitingSign />
+              <p className="ms-1">Timed</p>
+            </>
+          )}
+        </div>
+        <div className="flex items-center justify-between flex-col">
+          <span className="font-light text-gray-600 w-full my-2">
+            {timerExpired && props.highestBid !== 0 ? (
+              <span className="inline-flex justify-between w-full">
+                Highest bid :
+                <p className="ms-auto float-righ text-gray-800 font-medium">
+                  {props.highestBid}RON
+                </p>
+              </span>
+            ) : (
+              <span className="inline-flex justify-between w-full">
+                Opening bid :
+                <p className="ms-auto float-righ text-gray-800 font-medium">
+                  {props.startingFrom}RON
+                </p>
+              </span>
             )}
           </span>
         </div>
         {!timerExpired ? (
           <div className="text-sm font-thin">
-            <span>{timeLeft.hours || "00"} hours </span>
-            <span>{timeLeft.minutes || "00"} minutes </span>
-            <span>{timeLeft.seconds || "00"} seconds</span>
+            <span>Bid starts in</span>
+            <div>
+              <span>{timeLeft.hours || "00"} hours </span>
+              <span>{timeLeft.minutes || "00"} minutes </span>
+              <span>{timeLeft.seconds || "00"} seconds</span>
+            </div>
           </div>
         ) : (
-          <div className="my-6 grid grid-cols-2">
-            <Link
-              to={"/bid/" + props.bidId}
-              className=" text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-            >
-              Join Bidding !
-            </Link>
-            <a
-              href="#"
-              className=" text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-            >
-              Quick Bid
-            </a>
-          </div>
+          <span className="font-light text-gray-600 w-full">
+            <div className="flex flex-col items-start">
+              <span>Bid ends</span>
+              {readableDate}
+            </div>
+          </span>
         )}
       </div>
-    </div>
+    </Link>
   );
 };
 

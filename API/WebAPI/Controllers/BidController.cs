@@ -26,7 +26,7 @@ namespace Licenta.Controllers
             if (result)
             {
                biddingHub.Clients.All.UpdateHighestBid();
-                biddingHub.Clients.All.UpdateLatestBids();
+               biddingHub.Clients.All.UpdateLatestBids();
             }
 
             return Ok(result);

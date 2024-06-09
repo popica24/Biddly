@@ -12,6 +12,7 @@ import { AuthProvider } from "./context/AuthContext";
 import "flowbite/dist/datepicker";
 import { WinnerRepositoryProvider } from "./context/WinnerRepositoryContext";
 import { PastBidsRepositoryProvider } from "./context/PastBidsRepositoryContext";
+import { WinningsRepositoryProvider } from "./context/MyWinningsRepositoryContext";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <LatestBidsRepositoryProvider>
@@ -21,9 +22,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <UserRepositoryProvider>
               <BidRepositoryProvider>
                 <PastBidsRepositoryProvider>
-                  <AuthProvider>
-                    <RouterProvider router={router} />
-                  </AuthProvider>
+                  <WinningsRepositoryProvider>
+                    <AuthProvider>
+                      <RouterProvider router={router} />
+                    </AuthProvider>
+                  </WinningsRepositoryProvider>
                 </PastBidsRepositoryProvider>
               </BidRepositoryProvider>
             </UserRepositoryProvider>

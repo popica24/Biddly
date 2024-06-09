@@ -4,6 +4,8 @@ import BidPage from "../pages/bidPage/BidPage";
 import CreateBid from "../pages/create/CreateBid";
 import Homepage from "../pages/homepage/Homepage";
 import Authenticate from "../pages/authenticate/Authenticate";
+import MyWinnings from "../pages/myWinnings/MyWinnings";
+import Profile from "../pages/profile/Profile";
 
 export const router = createBrowserRouter([
   {
@@ -23,8 +25,16 @@ export const router = createBrowserRouter([
         element: <CreateBid />,
       },
       {
+        path: "wins",
+        element: <MyWinnings />,
+      },
+      {
         path: "authenticate",
         element: <Authenticate />,
+      },
+      {
+        path: "profile",
+        element: <Profile />,
       },
     ],
   },

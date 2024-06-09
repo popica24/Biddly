@@ -2,20 +2,20 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { BidModel } from "../../utils/types";
 import { HubConnectionBuilder } from "@microsoft/signalr";
-import { Button } from "flowbite-react";
-import Counter from "./components/Counter";
 import { useBid } from "../../context/BidRepositoryContext";
 import { useBidding } from "../../context/BiddingRepositoryContext";
 import { useAuth } from "../../context/AuthContext";
 import LoadingOverlay from "./components/LoadingOverlay";
 import { useWinnerBids } from "../../context/WinnerRepositoryContext";
+import ErrorScreen from "./components/ErrorScreen";
+import WonBid from "./components/WonBid";
 
 const BidPage = () => {
-  const [error, setError] = useState(false);
   const [bid, setBid] = useState<BidModel>();
   const [winner, setWinner] = useState<string | undefined>(undefined);
   const [bidValue, setBidValue] = useState<number | undefined>(undefined);
   const [timerExpired, setTimerExpired] = useState(false);
+  const [error, setError] = useState(false);
   const bidParams = useParams();
   const bidRepo = useBid();
   const biddingRepo = useBidding();
@@ -24,7 +24,7 @@ const BidPage = () => {
   const bidId = bidParams.itemName;
 
   if (!bidId) {
-    return <>Error</>;
+    return <ErrorScreen />;
   }
 
   const fetchBid = async (id: string) => {
@@ -48,6 +48,24 @@ const BidPage = () => {
     else setWinner("A winner was not chosed");
   };
 
+  const handleBidPlace = async () => {
+    if (!user) {
+      return;
+    }
+    const bidderId = user.id;
+    if (bidValue !== undefined) {
+      await bidRepo?.create({
+        bidId,
+        bidderId,
+        ammount: bidValue,
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchBid(bidId);
+  }, [bidId]);
+
   useEffect(() => {
     const connection = new HubConnectionBuilder()
       .withUrl("https://localhost:7174/biddingHub")
@@ -66,132 +84,110 @@ const BidPage = () => {
   }, [bidId]);
 
   useEffect(() => {
-    fetchBid(bidId);
-  }, [bidId]);
+    if (!bid) return;
+    const endAt = new Date(bid?.wonAt).getTime();
+    const now = new Date().getTime();
+    const difference = endAt - now;
 
-  const handleBidPlace = async () => {
-    if (!user) {
-      return;
-    }
-    const bidderId = user.id;
-    if (bidValue !== undefined) {
-      await bidRepo?.create({ bidId, bidderId, ammount: bidValue });
-    }
-  };
+    const timer = setTimeout(() => {
+      setTimerExpired(true);
+    }, difference);
 
-  const handleIncreaseBidValue = () => {
-    if (bidValue !== undefined) {
-      setBidValue(bidValue + 5);
-    }
-  };
+    return () => clearTimeout(timer);
+  }, [bid]);
 
-  const handleDecreaseBidValue = () => {
-    if (bidValue !== undefined) {
-      setBidValue(bidValue - 5);
-    }
-  };
-
-  if (error) {
-    return (
-      <div className="flex flex-col justify-center  mt-auto items-center w-full">
-        <h1 className="text-3xl font-thin">
-          This bid is not available or has been moved
-        </h1>
-        <img src="/no-content.gif" alt="" width={500} />
-      </div>
-    );
+  if (error || !bid) {
+    return <ErrorScreen />;
   }
 
-  if (bid?.username) {
-    return (
-      <>
-        <div className="flex justify-center mt-[68.8px] w-full">
-          <div className="flex flex-row items-center justify-center">
-            <img
-              width={400}
-              className="aspect-[3/4]"
-              src="https://media.richardmille.com/wp-content/uploads/2022/09/21141757/RM-88view.png?dpr=3&width=187.5"
-              alt=""
-            />
-            <div className="flex flex-col items-start">
-              <h1 className="text-4xl font-thin my-8">{bid?.itemName}</h1>
-              <h2>Winner : {bid.username}</h2>
-            </div>
-          </div>
-        </div>
-      </>
-    );
+  if (bid.username) {
+    return <WonBid {...bid} />;
   }
-
+  const date = new Date(bid.wonAt);
+  const readableDate = date.toLocaleString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    hour12: false,
+  });
   return (
     <>
       {timerExpired && <LoadingOverlay winner={winner} />}
-      <div className="flex justify-center mt-[68.8px] w-full">
-        <div className="flex flex-col items-center justify-center">
-          <img
-            width={400}
-            className="aspect-[3/4]"
-            src="https://media.richardmille.com/wp-content/uploads/2022/09/21141757/RM-88view.png?dpr=3&width=187.5"
-            alt=""
-          />
-          <h1 className="text-4xl font-thin my-8">{bid?.itemName}</h1>
-        </div>
-      </div>
-      <div className="container grid grid-cols-2 mx-auto place-content-center ">
-        <div className="col-span-1">
-          <div className="flex flex-row items-center justify-center">
-            <Button
-              className="text-black bg-[#ffed4b]"
-              onClick={handleBidPlace}
-            >
-              Post Bid
-            </Button>
-          </div>
-        </div>
-        <div className="col-span-1">
-          <div className="flex flex-col justify-center">
-            <span className="text-center">
-              {timerExpired ? "Bid Ended" : "Bid Ends in:"}
-            </span>
-            {bid && (
-              <Counter
-                timerExpired={timerExpired}
-                setTimerExpired={setTimerExpired}
-                endsAt={bid.wonAt}
-              />
-            )}
 
-            <div className="border-b-2 border-t-2 px-44 my-6">
-              <div className="flex flex-row my-4 text-[#8d8d8d]">
-                <span className="float-left">Starting Bid</span>
-                <span className="ms-auto float-right">
-                  {bid?.startingFrom}RON
-                </span>
+      <div className="flex flex-col justify-center mt-[68.8px] w-full container xl:px-36">
+        <h1 data-aos="slide-right" className="text-4xl font-thin my-8">
+          {bid?.itemName}
+        </h1>
+
+        <div className="xl:grid flex flex-col grid-cols-2 place-items-center">
+          <div className="col-span-1">
+            <img
+              width={400}
+              className="aspect-[3/4]"
+              src="https://image.harrods.com/cartier-large-yellow-gold-tank-louis-cartier-watch-25-5mm_18803691_42076547_2048.jpg"
+              alt=""
+            />
+          </div>
+          <div className="col-span-1">
+            <div className="flex flex-col justify-start items-start xl:px-32 py-4 text-nowrap">
+              <div className="text-start">
+                {bid?.highestBid > 0 ? (
+                  <span className="inline-flex items-center">
+                    <p className="font-medium text-[#666]">Current bid </p>
+                    <p className=" ms-4 text-xl font-bold">
+                      {bid?.highestBid} RON
+                    </p>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center">
+                    <p className="font-medium text-[#666]">Opening bid </p>
+                    <p className=" ms-4 text-xl font-bold">
+                      {bid?.startingFrom} RON
+                    </p>
+                  </span>
+                )}
+                {bid?.createdBy !== user?.id && (
+                  <div className="flex flex-row items-center my-5">
+                    <p className="font-medium text-[#666]">Your bid </p>
+                    <div className="bg-white inline-flex items-center border hover:border-black transition-colors ms-2">
+                      <input
+                        value={bidValue}
+                        onChange={(e) => setBidValue(Number(e.target.value))}
+                        type="number"
+                        placeholder="Enter your bid"
+                        className="h-[30px] w-[150px] xl:w-[220px] border-0 active:outline-none active:border-0"
+                      />
+
+                      <span className="font-bold pe-2">RON</span>
+                    </div>
+                    <button
+                      className="bg-blue-400 hover:bg-blue-500 transition-colors h-[30px] px-4 text-white"
+                      onClick={handleBidPlace}
+                    >
+                      Place Bid
+                    </button>
+                  </div>
+                )}
+                {bid?.createdBy !== user?.id && (
+                  <span className="text-center">
+                    (bid {Math.max(bid.startingFrom, bid.highestBid) + 10} or
+                    more)
+                  </span>
+                )}
               </div>
-              <div className="flex flex-row mb-4 font-medium">
-                <span className="float-left">Current Bid</span>
-                <span className="ms-auto float-right">
-                  {Math.max(bid?.highestBid!, bid?.startingFrom!)}RON
-                </span>
-              </div>
+              <span className="inline-flex items-start">
+                Timed auction:{" "}
+                <p className="ms-4 flex flex-col items-start">
+                  <span className="font-medium">Bidding ends:</span>
+                  <span className="text-red-600 font-medium">
+                    {readableDate}
+                  </span>
+                </p>
+              </span>
             </div>
-            {bid?.createdBy !== user?.id ? (
-              <div className="flex flex-row items-stretch justify-center">
-                <span className="border border-[#114D58] flex items-center justify-evenly w-1/3 rounded-md me-4">
-                  <button onClick={handleIncreaseBidValue}>+</button>
-                  <span>{bidValue} RON</span>
-                  <button onClick={handleDecreaseBidValue}>-</button>
-                </span>
-                <Button
-                  className="text-white bg-[#114D58]"
-                  onClick={handleBidPlace}
-                >
-                  Post Bid
-                </Button>
-              </div>
-            ) : (
-              <></>
-            )}
           </div>
         </div>
       </div>

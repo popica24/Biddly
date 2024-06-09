@@ -7,11 +7,15 @@ import {
 } from "react";
 import { User } from "../utils/types";
 import { useUsers } from "./UserRepositoryContext";
-
-// Extend the context type to include loading
+import LoadingScreen from "../components/LoadingScreen";
+import axios from "axios";
+const BASE_URL = import.meta.env.VITE_API_LOCAL_URL + "/auth/";
 type AuthContextType = {
   user: User | undefined;
   loading: boolean;
+  logout: () => void;
+  changeUsername: (username: string) => Promise<string>;
+  changePassword: (oldPassword: string, newPassword: string) => void;
 };
 
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -40,6 +44,51 @@ export const AuthProvider = ({ children }: ProviderProps) => {
     }
   };
 
+  const logout = async () => {
+    setLoading(true);
+    const token = localStorage.getItem("token");
+    await axios
+      .post(
+        "https://localhost:7174/api/logout",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          withCredentials: true,
+        }
+      )
+      .then(() => {
+        localStorage.removeItem("token");
+        setTimeout(() => {
+          window.location.href = "/";
+          setLoading(false);
+        }, 500);
+      });
+  };
+
+  const changeUsername = async (username: string): Promise<string> => {
+    if (!user) return "";
+    const response = await axios.post(BASE_URL + user.id, null, {
+      params: {
+        username: username,
+      },
+    });
+
+    return response.data as string;
+  };
+  const changePassword = async (oldPassword: string, newPassword: string) => {
+    if (!user) return "";
+    const response = await axios.put(BASE_URL + user.id, null, {
+      params: {
+        oldPassword,
+        newPassword,
+      },
+    });
+
+    return response.data as string;
+  };
+
   useEffect(() => {
     fetchUser();
     window.addEventListener("tokenChanged", fetchUser);
@@ -49,8 +98,17 @@ export const AuthProvider = ({ children }: ProviderProps) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user: user, loading: loading }}>
+    <AuthContext.Provider
+      value={{
+        user: user,
+        loading: loading,
+        logout: logout,
+        changeUsername,
+        changePassword,
+      }}
+    >
       {children}
+      {loading && <LoadingScreen />}
     </AuthContext.Provider>
   );
 };
