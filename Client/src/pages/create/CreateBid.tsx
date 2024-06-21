@@ -4,12 +4,15 @@ import { CreateBidRequest } from "../../utils/types";
 import { useAuth } from "../../context/AuthContext";
 import { useBidding } from "../../context/BiddingRepositoryContext";
 
+import { ref, uploadBytes } from "firebase/storage";
+import { imageDb } from "../../utils/firebase";
+
 const CreateBid = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-
+  const [photo, setPhoto] = useState<Blob | null>(null);
   const [startingFrom, setStartingFrom] = useState("");
 
   const [itemName, setItemName] = useState("");
@@ -17,20 +20,26 @@ const CreateBid = () => {
   const { user } = useAuth();
   const bidRepo = useBidding();
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(user);
-
+    console.clear();
     const startingFromNumber = Number(startingFrom);
-    if (!user) return;
-    const bid: CreateBidRequest = {
-      createdBy: user?.id,
-      startingFrom: startingFromNumber,
-      itemName,
-      startingAt: `${startDate} ${startTime}`,
-      wonAt: `${endDate} ${endTime}`,
-    };
-    bidRepo?.create(bid);
+    try {
+      if (!user) return;
+      const bid: CreateBidRequest = {
+        createdBy: user?.id,
+        startingFrom: startingFromNumber,
+        itemName,
+        startingAt: `${startDate} ${startTime}`,
+        wonAt: `${endDate} ${endTime}`,
+      };
+      var bidId = await bidRepo?.create(bid);
+
+      const uploadRef = ref(imageDb, `${bidId?.data}/hero.jpg`);
+      await uploadBytes(uploadRef, photo!);
+    } catch (error) {
+      console.error("Error creating bid or uploading image:", error);
+    }
   };
 
   return (
@@ -71,6 +80,7 @@ const CreateBid = () => {
             <input
               className="block w-full text-sm text-gray-400 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-400 dark:border-gray-400 dark:placeholder-gray-400"
               id="file_input"
+              onChange={(e) => setPhoto(e.target.files![0])}
               type="file"
             />
           </div>

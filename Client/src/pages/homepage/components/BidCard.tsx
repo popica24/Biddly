@@ -1,6 +1,8 @@
+import { getDownloadURL, ref } from "firebase/storage";
 import { useEffect, useState } from "react";
 import { CiClock2, CiNoWaitingSign } from "react-icons/ci";
 import { Link } from "react-router-dom";
+import { imageDb } from "../../../utils/firebase";
 
 type Props = {
   i: number;
@@ -12,13 +14,8 @@ type Props = {
   wonAt: string;
 };
 
-const imgLib = [
-  "https://washingtonwatchgroup.com/wp-content/uploads/2023/04/m126506-0001_collection_upright_portrait.jpg",
-  "https://media.richardmille.com/wp-content/uploads/2022/09/21141757/RM-88view.png?dpr=3&width=187.5",
-  "https://www.audemarspiguet.com/content/dam/ap/com/products/watches/MTR010402AA/importer/watch.png.transform.appdpmain.png",
-];
-
 const BidCard = (props: Props) => {
+  const [image, setImage] = useState("");
   const calculateTimeLeft = () => {
     const startDate = new Date(props.startingAt).getTime();
 
@@ -72,6 +69,10 @@ const BidCard = (props: Props) => {
 
     return () => clearInterval(timer);
   }, [props.startingAt]);
+  useEffect(() => {
+    const imagePath = ref(imageDb, `${props.bidId}/hero.jpg`);
+    getDownloadURL(imagePath).then((url) => setImage(url));
+  }, [props.bidId]);
   const date = new Date(props.wonAt);
   const readableDate = date.toLocaleString("en-US", {
     weekday: "long",
@@ -93,7 +94,7 @@ const BidCard = (props: Props) => {
       <img
         width={300}
         className="mx-auto p-8 rounded-t-lg aspect-[3/4]"
-        src={imgLib[props.i]}
+        src={image}
         alt="product image"
       />
 

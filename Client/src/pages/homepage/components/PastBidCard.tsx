@@ -1,5 +1,8 @@
+import { useEffect, useState } from "react";
 import { CiTrophy } from "react-icons/ci";
 import { Link } from "react-router-dom";
+import { imageDb } from "../../../utils/firebase";
+import { getDownloadURL, ref } from "firebase/storage";
 
 type Props = {
   bidId: string;
@@ -10,6 +13,8 @@ type Props = {
 };
 
 const PastBidCard = (props: Props) => {
+  const [image, setImage] = useState("");
+
   const date = new Date(props.wonAt);
   const readableDate = date.toLocaleString("en-US", {
     weekday: "long",
@@ -18,6 +23,11 @@ const PastBidCard = (props: Props) => {
     day: "numeric",
     hour12: false,
   });
+  useEffect(() => {
+    if (!props.bidId) return;
+    const imagePath = ref(imageDb, `${props.bidId}/hero.jpg`);
+    getDownloadURL(imagePath).then((url) => setImage(url));
+  }, [props.bidId]);
   return (
     <Link
       to={"/bid/" + props.bidId}
@@ -26,7 +36,7 @@ const PastBidCard = (props: Props) => {
       <img
         width={300}
         className="p-8 rounded-t-lg aspect-[3/4]"
-        src="https://image.harrods.com/cartier-large-yellow-gold-tank-louis-cartier-watch-25-5mm_18803691_42076547_2048.jpg"
+        src={image}
         alt="product image"
       />
 

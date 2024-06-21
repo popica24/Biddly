@@ -87,7 +87,7 @@ const Homepage = () => {
                 data-aos-delay={`${100 + i * 200}`}
                 className="xl:me-12"
               >
-                <PastBidCard {...l} />
+                <PastBidCard {...l} i={i}/>
               </div>
             );
           })}

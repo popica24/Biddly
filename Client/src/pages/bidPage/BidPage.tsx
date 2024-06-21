@@ -9,9 +9,12 @@ import LoadingOverlay from "./components/LoadingOverlay";
 import { useWinnerBids } from "../../context/WinnerRepositoryContext";
 import ErrorScreen from "./components/ErrorScreen";
 import WonBid from "./components/WonBid";
+import { imageDb } from "../../utils/firebase";
+import { getDownloadURL, ref } from "firebase/storage";
 
 const BidPage = () => {
   const [bid, setBid] = useState<BidModel>();
+  const [image, setImage] = useState("");
   const [winner, setWinner] = useState<string | undefined>(undefined);
   const [bidValue, setBidValue] = useState<number | undefined>(undefined);
   const [timerExpired, setTimerExpired] = useState(false);
@@ -26,6 +29,11 @@ const BidPage = () => {
   if (!bidId) {
     return <ErrorScreen />;
   }
+  useEffect(() => {
+    if (!bidId) return;
+    const imagePath = ref(imageDb, `${bidId}/hero.jpg`);
+    getDownloadURL(imagePath).then((url) => setImage(url));
+  }, [bidId]);
 
   const fetchBid = async (id: string) => {
     try {
@@ -101,7 +109,7 @@ const BidPage = () => {
   }
 
   if (bid.username) {
-    return <WonBid {...bid} />;
+    return <WonBid {...bid} image={image} />;
   }
   const date = new Date(bid.wonAt);
   const readableDate = date.toLocaleString("en-US", {
@@ -113,6 +121,7 @@ const BidPage = () => {
     minute: "numeric",
     hour12: false,
   });
+
   return (
     <>
       {timerExpired && <LoadingOverlay winner={winner} />}
@@ -126,8 +135,8 @@ const BidPage = () => {
           <div className="col-span-1">
             <img
               width={400}
-              className="aspect-[3/4]"
-              src="https://image.harrods.com/cartier-large-yellow-gold-tank-louis-cartier-watch-25-5mm_18803691_42076547_2048.jpg"
+              className="aspect-[3/4] rounded-xl shadow-lg"
+              src={image}
               alt=""
             />
           </div>
